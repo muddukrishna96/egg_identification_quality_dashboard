@@ -251,11 +251,13 @@ egg_identification_quality_dashboard/
 
 ---
 
-## sample outputs dashoboard
-![](sample_dashboard\1.png)
+## Sample Outputs Dashboard
 
-![](sample_dashboard\2.png)
+![Dashboard Screenshot 1](sample_dashboard/1.png)
 
+![Dashboard Screenshot 2](sample_dashboard/2.png)
+
+---
 
 ## 🔍 How It Works
 
@@ -441,8 +443,9 @@ with mlflow.start_run():
 
 **Purpose**: Create visually appealing detection annotations.
 
-## sample outputs BBox
-![](sample_dashboard\3.png)
+## Sample Outputs - Bounding Boxes
+
+![Bounding Box Visualization](sample_dashboard/3.png)
 
 **Visual Design**:
 - **Green Neon**: Eggs (successful detection)

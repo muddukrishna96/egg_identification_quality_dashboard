@@ -1,0 +1,2 @@
+confidence_threshold : 0.5
+classes_to_track : [0, 1]

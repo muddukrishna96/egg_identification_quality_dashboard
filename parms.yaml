@@ -1,0 +1,17 @@
+model_path: C:\Users\muddu krishna\Desktop\personal\projects personal\egg_identification_quality_dashboard\yolo11x.pt
+data_yaml_path: C:\Users\muddu krishna\Desktop\personal\projects personal\egg_identification_quality_dashboard\src\egg_identification-2\data.yaml
+pretrained: True
+device: 0
+seed: 0
+imgsz: 640
+batch: 4 
+epochs: 100
+cos_lr: True
+optimizer: AdamW # other choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
+workers: 4
+lr0: 0.001  # learning rate 
+experiment_name: "egg_identification_yolo_11"
+mlflow_tracking_uri: "http://127.0.0.1:5000"  # replace with your MLflow server URI
+
+Inference_model_path: C:\Users\muddu krishna\Desktop\personal\projects personal\egg_identification_quality_dashboard\mlartifacts\161234494266121423\b9d64846df6241f2b6828dc35ed5258e\artifacts\weights\best.pt
+classes_to_track : [0, 1]

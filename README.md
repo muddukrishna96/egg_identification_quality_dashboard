@@ -222,25 +222,32 @@ egg_identification_quality_dashboard/
 │       └── test/                     # Test images & labels
 │
 ├── model/                            # Trained model weights
-│   └── best.pt                       # Best YOLO model checkpoint
+│   └── best.pt                       # ⚠️ Fine-tuned YOLOv11 model (109MB - DOWNLOAD REQUIRED)
 │
 ├── sample_images_for_testing/       # Sample images for demo
 │   ├── IMG_6524_MOV-0068_jpg.rf...jpg
 │   ├── IMG_6524_MOV-0097_jpg.rf...jpg
 │   └── IMG_6524_MOV-0192_jpg.rf...jpg
 │
-├── mlruns/                           # MLflow experiment tracking data
-├── mlartifacts/                      # MLflow model artifacts
+├── mlruns/                           # MLflow experiment tracking data (excluded)
+├── mlartifacts/                      # MLflow model artifacts (excluded)
 │
-├── parms.yaml                        # Training hyperparameters
-├── inference_phams.yaml             # Inference configuration
+├── parms.yaml                        # ❌ Training hyperparameters (NOT INCLUDED - create if training)
+├── inference_phams.yaml             # ✅ Inference configuration (INCLUDED)
 │   ├── confidence_threshold: 0.5     # Detection confidence threshold
 │   └── classes_to_track: [0, 1]     # Classes: Egg & Empty Slot
 │
 ├── requriments.txt                   # Python dependencies
 ├── run_app.py                        # Single-command launcher
+├── .gitignore                        # Git exclusions
 └── README.md                         # This file
 ```
+
+**Important Notes**: 
+- ⚠️ `model/best.pt` must be **downloaded separately** (109MB - exceeds GitHub's 100MB limit)
+  - See [Installation Step 5](#step-5-download-trained-model) for download instructions
+- ❌ `parms.yaml` is **excluded** - only needed if you want to train your own model
+- ❌ Large datasets and pre-trained weights are **excluded** to keep repository lightweight
 
 ---
 
@@ -546,18 +553,68 @@ pip install -r requriments.txt
 - `mlflow==3.4.0` - Experiment tracking
 - `plotly==6.3.1` - Visualizations
 
-### **Step 4: Download Model Weights**
-Place your trained model in the `model/` directory:
-```bash
-model/
-└── best.pt  # Trained YOLOv11 weights
+### **Step 4: Configure Training Parameters (Optional)**
+
+If you plan to train your own model, create a `parms.yaml` file in the root directory:
+
+```yaml
+# MLflow Configuration
+mlflow_tracking_uri: "file:./mlruns"
+experiment_name: "egg_detection_yolov11"
+
+# Model Configuration
+model_path: "yolo11x.pt"  # Pre-trained YOLO weights (download separately)
+data_yaml_path: "src/egg_identification-2/data.yaml"
+
+# Training Hyperparameters
+epochs: 100
+device: "cuda"  # Use "cpu" if no GPU available
+batch: 16
+imgsz: 640
+workers: 8
 ```
 
-If you don't have a trained model, you can train one using the provided dataset (see [Model Training](#-model-training)).
+**Note**: `parms.yaml` is excluded from version control as it contains user-specific configurations. The inference configuration (`inference_phams.yaml`) is already included in the repository.
+
+### **Step 5: Download Trained Model**
+
+The trained model (`model/best.pt`) is too large for GitHub (109MB). Download it from one of these sources:
+
+**Option 1: Google Drive**
+```bash
+# Download the model from Google Drive
+# Link: [Add your Google Drive link here]
+# Place it in: model/best.pt
+```
+
+**Option 2: GitHub Releases**
+```bash
+# Download from GitHub Releases page
+# Visit: https://github.com/muddukrishna96/egg_identification_quality_dashboard/releases
+# Download best.pt and place in model/ directory
+```
+
+**Option 3: Hugging Face Hub**
+```bash
+# Download from Hugging Face
+# Link: [Add your Hugging Face link here]
+```
+
+**Model File Structure**:
+```
+model/
+└── best.pt  # Fine-tuned YOLOv11 weights (109MB)
+```
+
+**Alternative**: If you prefer, you can [train your own model](#-model-training) using the provided training pipeline.
 
 ---
 
 ## 💻 Usage
+
+### **Prerequisites**
+- Ensure you have downloaded `model/best.pt` (see Step 5 above)
+- All dependencies installed from `requirements.txt`
 
 ### **Option 1: Single Command (Recommended)**
 
@@ -617,9 +674,40 @@ streamlit run frontend/app.py
 
 ## 🎓 Model Training
 
-### **Dataset Structure**
+### **Prerequisites for Training**
 
-The dataset is organized in YOLO format:
+Before training a custom model, you'll need:
+
+1. **Dataset**: Annotated egg tray images (not included in repository due to size)
+2. **Pre-trained Weights**: Download `yolo11x.pt` from Ultralytics
+3. **Configuration File**: Create `parms.yaml` (see below)
+
+### **Step 1: Create parms.yaml**
+
+Create a `parms.yaml` file in the root directory with your training configuration:
+
+```yaml
+# MLflow Configuration
+mlflow_tracking_uri: "file:./mlruns"
+experiment_name: "egg_detection_yolov11"
+
+# Model Configuration
+model_path: "yolo11x.pt"  # Pre-trained YOLO weights
+data_yaml_path: "src/egg_identification-2/data.yaml"
+
+# Training Hyperparameters
+epochs: 100
+device: "cuda"  # Use "cpu" if no GPU available
+batch: 16
+imgsz: 640
+workers: 8
+```
+
+**Note**: This file is excluded from version control (`.gitignore`) as it contains user-specific paths and configurations.
+
+### **Step 2: Prepare Dataset**
+
+The dataset should be organized in YOLO format:
 
 ```
 src/egg_identification-2/
@@ -646,7 +734,7 @@ nc: 2  # Number of classes
 names: ['egg', 'empty_slot']
 ```
 
-### **Training Script**
+### **Step 3: Run Training Script**
 
 ```bash
 python src/model_building.py
@@ -667,26 +755,17 @@ mlflow ui --backend-store-uri file:./mlruns
 # Navigate to http://localhost:5000
 ```
 
-### **Configuration Files**
+### **Inference Configuration**
 
-**parms.yaml** (Training):
-```yaml
-mlflow_tracking_uri: "file:./mlruns"
-experiment_name: "egg_detection_yolov11"
-model_path: "yolo11x.pt"
-data_yaml_path: "src/egg_identification-2/data.yaml"
-epochs: 100
-device: "cuda"
-batch: 16
-imgsz: 640
-workers: 8
-```
+For running inference (already included in the repository):
 
-**inference_phams.yaml** (Inference):
+**inference_phams.yaml**:
 ```yaml
 confidence_threshold: 0.5
 classes_to_track: [0, 1]  # [egg, empty_slot]
 ```
+
+This file controls detection sensitivity and which classes to detect during inference.
 
 ---
 

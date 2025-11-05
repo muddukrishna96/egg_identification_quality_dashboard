@@ -184,14 +184,16 @@ mlruns/
 src/egg_identification-2/
 src/runs/
 
-# YOLO model weights (large files)
+# Training configuration (user-specific)
+parms.yaml
+
+# YOLO model weights (large files - too big for GitHub)
 yolo11x.pt
+model/best.pt
 *.pt
 *.pth
-*.weights
 
 # Model checkpoints and runs
-model/
 runs/
 weights/
 

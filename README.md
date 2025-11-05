@@ -156,7 +156,7 @@ The system is designed for real-time deployment in poultry farms, egg processing
   - Asynchronous request handling
   - CORS middleware for cross-origin requests
 
-### **Machine Learning**
+### **deep Learning**
 - **Ultralytics YOLOv11 (8.3.219)**: Object detection framework
   - Pre-trained weights
   - Custom dataset fine-tuning
@@ -251,6 +251,12 @@ egg_identification_quality_dashboard/
 
 ---
 
+## sample outputs dashoboard
+![](sample_dashboard\1.png)
+
+![](sample_dashboard\2.png)
+
+
 ## 🔍 How It Works
 
 ### **1. Frontend (Streamlit Dashboard)**
@@ -283,21 +289,6 @@ egg_identification_quality_dashboard/
 - ✅ **Easy Deployment**: Simple deployment to Streamlit Cloud
 - ✅ **Custom Styling**: CSS injection for branded look and feel
 
-**Code Highlights**:
-```python
-# Dynamic image source selection
-image_source = st.radio("Select Image Source:", 
-                        ["Upload Your Own", "Use Sample Image"])
-
-# Conditional rendering based on selection
-if image_source == "Upload Your Own":
-    uploaded_file = st.file_uploader("Choose an image", 
-                                     type=["jpg", "jpeg", "png"])
-else:
-    # Load sample images from folder
-    sample_images = list(sample_folder.glob("*.jpg"))
-    selected_sample = st.selectbox("Choose a sample image:", ...)
-```
 
 ---
 
@@ -350,14 +341,9 @@ async def predict(file: UploadFile = File(...)):
 
 **Workflow**:
 
-1. **Image Preprocessing**:
-   ```python
-   # Convert bytes to OpenCV image
-   image_array = np.frombuffer(image_bytes, np.uint8)
-   frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-   ```
 
-2. **YOLO Detection**:
+
+**YOLO Detection**:
    ```python
    # Load trained model
    model = YOLO("model/best.pt")
@@ -422,13 +408,6 @@ async def predict(file: UploadFile = File(...)):
 **Training Process**:
 
 ```python
-# src/model_building.py
-from ultralytics import YOLO
-import mlflow
-
-# Initialize MLflow tracking
-mlflow.set_tracking_uri("file:./mlruns")
-mlflow.set_experiment("egg_detection_yolov11")
 
 with mlflow.start_run():
     # Load pre-trained YOLOv11 model
@@ -436,18 +415,10 @@ with mlflow.start_run():
     
     # Train on custom dataset
     results = model.train(
-        data="src/egg_identification-2/data.yaml",
-        epochs=100,
-        device="cuda",  # GPU acceleration
-        batch=16,
-        imgsz=640,
-        workers=8
+ 
     )
     
-    # Log best model to MLflow
-    model_path = results.save_dir / "weights" / "best.pt"
-    clean_model = YOLO(str(model_path)).model
-    mlflow.pytorch.log_model(clean_model, "model")
+
 ```
 
 **Training Hyperparameters** (from `parms.yaml`):
@@ -470,40 +441,8 @@ with mlflow.start_run():
 
 **Purpose**: Create visually appealing detection annotations.
 
-**Implementation** (`backend/utils.py`):
-```python
-def draw_neon_corner_box(img, x1, y1, x2, y2, color, thickness=2, 
-                         corner_len=20, glow_intensity=0.3):
-    """
-    Draw glowing corner-style bounding boxes.
-    
-    Args:
-        img: Input image
-        x1, y1, x2, y2: Bounding box coordinates
-        color: RGB color tuple
-        thickness: Line thickness
-        corner_len: Length of corner lines
-        glow_intensity: Glow effect strength
-    """
-    # Draw corners at each vertex
-    corners = [
-        [(x1, y1), (x1 + corner_len, y1), (x1, y1 + corner_len)],  # Top-left
-        [(x2, y1), (x2 - corner_len, y1), (x2, y1 + corner_len)],  # Top-right
-        [(x1, y2), (x1 + corner_len, y2), (x1, y2 - corner_len)],  # Bottom-left
-        [(x2, y2), (x2 - corner_len, y2), (x2, y2 - corner_len)]   # Bottom-right
-    ]
-    
-    for corner in corners:
-        cv2.line(img, corner[0], corner[1], color, thickness)
-        cv2.line(img, corner[0], corner[2], color, thickness)
-    
-    # Add glow effect
-    overlay = img.copy()
-    cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
-    cv2.addWeighted(overlay, glow_intensity, img, 1 - glow_intensity, 0, img)
-    
-    return img
-```
+## sample outputs BBox
+![](sample_dashboard\3.png)
 
 **Visual Design**:
 - **Green Neon**: Eggs (successful detection)
@@ -580,24 +519,13 @@ workers: 8
 
 The trained model (`model/best.pt`) is too large for GitHub (109MB). Download it from one of these sources:
 
-**Option 1: Google Drive**
-```bash
-# Download the model from Google Drive
-# Link: [Add your Google Drive link here]
-# Place it in: model/best.pt
-```
 
-**Option 2: GitHub Releases**
+
+**GitHub Releases**
 ```bash
 # Download from GitHub Releases page
-# Visit: https://github.com/muddukrishna96/egg_identification_quality_dashboard/releases
+# Visit: https://github.com/muddukrishna96/egg_identification_quality_dashboard/releases/tag/v1.0.0
 # Download best.pt and place in model/ directory
-```
-
-**Option 3: Hugging Face Hub**
-```bash
-# Download from Hugging Face
-# Link: [Add your Hugging Face link here]
 ```
 
 **Model File Structure**:
@@ -643,17 +571,7 @@ This will:
 Press Ctrl+C to stop both.
 ```
 
-### **Option 2: Manual (Separate Terminals)**
 
-**Terminal 1 - Backend**:
-```bash
-uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-**Terminal 2 - Frontend**:
-```bash
-streamlit run frontend/app.py
-```
 
 ### **Using the Dashboard**
 
@@ -678,7 +596,7 @@ streamlit run frontend/app.py
 
 Before training a custom model, you'll need:
 
-1. **Dataset**: Annotated egg tray images (not included in repository due to size)
+1. **Dataset**: Annotated egg tray images you can find the data set her e https://app.roboflow.com/ds/9I8s1UOWBI?key=xWev7GEtEx (not included in repository due to size)
 2. **Pre-trained Weights**: Download `yolo11x.pt` from Ultralytics
 3. **Configuration File**: Create `parms.yaml` (see below)
 
@@ -765,73 +683,9 @@ confidence_threshold: 0.5
 classes_to_track: [0, 1]  # [egg, empty_slot]
 ```
 
-This file controls detection sensitivity and which classes to detect during inference.
 
----
 
-## 🌐 Deployment
 
-### **Option 1: Render.com (Recommended)**
-
-**Backend Deployment**:
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Configure:
-   - **Build Command**: `pip install -r requriments.txt`
-   - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port 10000`
-   - **Root Directory**: `backend/` (if applicable)
-4. Deploy and copy the URL (e.g., `https://your-backend.onrender.com`)
-
-**Frontend Deployment**:
-1. Create another Web Service
-2. Configure:
-   - **Build Command**: `pip install -r requriments.txt`
-   - **Start Command**: `streamlit run frontend/app.py --server.port 10000 --server.address 0.0.0.0`
-3. Update `API_URL` in `frontend/app.py` to your backend URL:
-   ```python
-   API_URL = "https://your-backend.onrender.com/predict/"
-   ```
-
-### **Option 2: Streamlit Community Cloud**
-
-For Streamlit-only deployment (combined frontend + backend):
-
-1. Merge backend logic into Streamlit app
-2. Push to GitHub (public repo)
-3. Deploy on [share.streamlit.io](https://share.streamlit.io)
-4. Add `packages.txt` for system dependencies (if needed)
-
-### **Option 3: Hugging Face Spaces**
-
-1. Create a new Space with Streamlit template
-2. Upload your code
-3. Configure `requirements.txt` and `app.py`
-4. Deploy with GPU support (for faster inference)
-
-### **Docker Deployment**
-
-**Dockerfile** (example):
-```dockerfile
-FROM python:3.10-slim
-
-WORKDIR /app
-COPY requriments.txt .
-RUN pip install --no-cache-dir -r requriments.txt
-
-COPY . .
-
-EXPOSE 8000 8501
-
-CMD ["python", "run_app.py"]
-```
-
-**Build and Run**:
-```bash
-docker build -t egg-dashboard .
-docker run -p 8000:8000 -p 8501:8501 egg-dashboard
-```
-
----
 
 ## 📚 API Documentation
 
@@ -871,25 +725,6 @@ curl -X POST "http://127.0.0.1:8000/predict/" \
   -F "file=@egg_tray.jpg"
 ```
 
-**Python Example**:
-```python
-import requests
-
-url = "http://127.0.0.1:8000/predict/"
-files = {"file": open("egg_tray.jpg", "rb")}
-response = requests.post(url, files=files)
-result = response.json()
-
-print(f"Eggs: {result['num_eggs']}")
-print(f"Empty: {result['num_empty_slots']}")
-print(f"Status: {result['tray_status']}")
-```
-
-**Interactive Docs**:
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- ReDoc: `http://127.0.0.1:8000/redoc`
-
----
 
 ## 🤝 Contributing
 
@@ -923,8 +758,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Muddu Krishna Galavalli**
 
 - Email: youremail@example.com
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- GitHub: [Your GitHub](https://github.com/yourusername)
+- LinkedIn: [Your LinkedIn](https://www.linkedin.com/in/galavalli-muddu-krishna-bb87ba112/)
+- GitHub: [Your GitHub](https://github.com/muddukrishna96)
 
 ---
 
@@ -961,33 +796,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## ❓ FAQ
-
-**Q: Can this system work with different egg tray sizes?**  
-A: Yes, but you'll need to retrain the model with images of different tray sizes.
-
-**Q: Does this require a GPU?**  
-A: GPU is recommended for training and faster inference, but CPU works fine for inference (just slower).
-
-**Q: Can I use this commercially?**  
-A: Yes, under the MIT license. Please review the license terms.
-
-**Q: How accurate is the detection?**  
-A: The model achieves 95%+ mAP on the test dataset. Real-world performance may vary based on lighting and image quality.
-
-**Q: Can I add more classes (e.g., cracked eggs)?**  
-A: Yes, you'll need to annotate images with the new class and retrain the model.
-
----
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [FAQ](#-faq) section
-2. Search existing [GitHub Issues](https://github.com/yourusername/egg_identification_quality_dashboard/issues)
-3. Open a new issue with detailed description
-4. Contact the author via email
 
 ---
 

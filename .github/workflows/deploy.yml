@@ -1,0 +1,65 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ aws_deployment ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to EC2
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+        HOST: ${{ secrets.EC2_HOST }}
+        USER: ubuntu
+      run: |
+        echo "🚀 Starting deployment to AWS EC2..."
+        
+        # Setup SSH
+        echo "$PRIVATE_KEY" > private_key.pem
+        chmod 600 private_key.pem
+        
+        # Deploy
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} '
+          cd /home/ubuntu/egg_identification_quality_dashboard || exit 1
+          
+          echo "📥 Pulling latest changes..."
+          git pull origin aws_deployment
+          
+          echo "🔧 Activating virtual environment..."
+          source venv/bin/activate
+          
+          echo "📚 Updating dependencies..."
+          pip install -r requirements.txt --upgrade
+          
+          echo "🔄 Restarting services..."
+          sudo systemctl restart egg-backend
+          sudo systemctl restart egg-frontend
+          
+          echo "✅ Deployment complete!"
+          
+          # Log the deployment
+          echo "$(date): GitHub Actions deployment completed" >> /var/log/egg-dashboard-updates.log
+        '
+        
+        # Cleanup
+        rm -f private_key.pem
+        
+    - name: Verify Deployment
+      env:
+        HOST: ${{ secrets.EC2_HOST }}
+      run: |
+        echo "🔍 Verifying deployment..."
+        sleep 10  # Wait for services to restart
+        
+        # Check if services are responding
+        curl -f http://${HOST}:8501 || echo "⚠️ Frontend may still be starting..."
+        curl -f http://${HOST}:8000/docs || echo "⚠️ Backend may still be starting..."
+        
+        echo "✅ Deployment verification complete!"

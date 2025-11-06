@@ -427,43 +427,123 @@ cp /home/ubuntu/egg_identification_quality_dashboard/model/best.pt ~/
 
 ## 🔄 Auto-Deploy Setup (Optional)
 
-### GitHub Actions Workflow
+Enable automatic deployment when you push code to GitHub.
 
-Create `.github/workflows/aws_deploy.yml`:
+### ⚠️ Important Note
 
-```yaml
-name: Deploy to AWS EC2
+The repository includes a **generic GitHub Actions workflow** file (`.github/workflows/deploy.yml`) that is **NOT configured by default**. You must set up GitHub Secrets to make it work.
 
-on:
-  push:
-    branches: [ aws_deployment ]
-  workflow_dispatch:
+### Step 1: Verify Workflow File Exists
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Deploy
-      env:
-        SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-        HOST: ${{ secrets.EC2_HOST }}
-      run: |
-        echo "$SSH_KEY" > key.pem
-        chmod 600 key.pem
-        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@${HOST} '
-          cd /home/ubuntu/egg_identification_quality_dashboard
-          git pull origin aws_deployment
-          source venv/bin/activate
-          pip install -r requirements.txt --upgrade
-          sudo systemctl restart egg-backend egg-frontend
-        '
+The file `.github/workflows/deploy.yml` should already be in the repository. If not, it will be created when you clone the `aws_deployment` branch.
+
+### Step 2: Setup GitHub Secrets
+
+**This is REQUIRED to activate auto-deployment:**
+
+1. **Go to your GitHub repository**
+   - Navigate to: `https://github.com/YOUR_USERNAME/egg_identification_quality_dashboard`
+
+2. **Open Settings**
+   - Click **Settings** tab (top right)
+   - Click **Secrets and variables** → **Actions** (left sidebar)
+
+3. **Add First Secret: EC2_SSH_KEY**
+   - Click **"New repository secret"**
+   - **Name**: `EC2_SSH_KEY`
+   - **Value**: Paste the **entire content** of your `.pem` key file
+   
+   ```bash
+   # On Windows PowerShell (to view key content)
+   Get-Content egg-dashboard-key.pem | clip  # Copies to clipboard
+   
+   # On Mac/Linux
+   cat egg-dashboard-key.pem  # Copy the output
+   ```
+   
+   - Click **"Add secret"**
+
+4. **Add Second Secret: EC2_HOST**
+   - Click **"New repository secret"** again
+   - **Name**: `EC2_HOST`
+   - **Value**: Your EC2 public IP address (e.g., `54.1.45.67`)
+   - Click **"Add secret"**
+
+### Step 3: How It Works
+
+Once secrets are configured, the workflow will **automatically**:
+
+1. **Trigger** on every push to `aws_deployment` branch
+2. **SSH** into your EC2 instance
+3. **Pull** latest code from GitHub
+4. **Update** Python dependencies
+5. **Restart** backend and frontend services
+6. **Verify** deployment success
+
+### Step 4: Test Auto-Deploy
+
+```bash
+# Make a small change locally
+echo "# Test auto-deploy" >> README.md
+
+# Commit and push
+git add README.md
+git commit -m "Test auto-deploy"
+git push origin aws_deployment
 ```
 
-**Setup Secrets:**
+**Check deployment:**
+1. Go to GitHub → Actions tab
+2. You'll see the workflow running
+3. Takes ~2-3 minutes to complete
 
-1. Repository → Settings → Secrets → Actions
-2. Add: `EC2_SSH_KEY` (your .pem file content)
-3. Add: `EC2_HOST` (your EC2 public IP)
+### Step 5: Manual Trigger (Alternative)
+
+You can also trigger deployment manually without pushing code:
+
+1. Go to GitHub → **Actions** tab
+2. Click **"Deploy to AWS EC2"** workflow
+3. Click **"Run workflow"** button
+4. Select branch: `aws_deployment`
+5. Click **"Run workflow"**
+
+### Workflow Status
+
+**✅ Active** - If you see green checkmarks in Actions tab  
+**❌ Failed** - Click on the failed run to see error logs  
+**⚠️ Inactive** - If secrets are not configured
+
+### Troubleshooting Auto-Deploy
+
+**Issue: Workflow fails with "Permission denied"**
+- Check `EC2_SSH_KEY` secret contains the complete .pem file
+- Ensure key includes `-----BEGIN RSA PRIVATE KEY-----` header
+
+**Issue: "Host key verification failed"**
+- Workflow includes `StrictHostKeyChecking=no` - should not happen
+- Check `EC2_HOST` secret has correct IP address
+
+**Issue: "Connection timeout"**
+- Verify EC2 security group allows SSH (port 22) from GitHub IPs
+- Or allow from anywhere (0.0.0.0/0) for GitHub Actions
+
+**Issue: Services don't restart**
+- SSH to EC2 and run: `sudo visudo`
+- Add: `ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl restart egg-backend, /bin/systemctl restart egg-frontend`
+
+### Disable Auto-Deploy
+
+If you don't want auto-deployment:
+
+```bash
+# Delete the workflow file
+rm -rf .github/workflows/deploy.yml
+
+# Commit and push
+git add .
+git commit -m "Disable auto-deploy"
+git push origin aws_deployment
+```
 
 ---
 

@@ -633,11 +633,98 @@ free -h && df -h && sudo systemctl is-active egg-backend
 
 ---
 
-## 🎉 Success!
+## � Custom Domain Setup (Optional)
+
+Want to use a friendly domain name instead of `http://56.228.9.10`? You can get a **free subdomain** using DuckDNS.
+
+### Using DuckDNS (Free Domain)
+
+**What you get:** `your-app-name.duckdns.org` (completely free, no credit card needed)
+
+#### Step 1: Create Free Subdomain
+
+1. Go to https://www.duckdns.org
+2. Sign in using GitHub, Google, or Reddit account
+3. Enter your desired subdomain name (e.g., `egg-dashboard`)
+4. You'll get: `egg-dashboard.duckdns.org`
+5. In the **"current ip"** field, enter your EC2 public IP: `YOUR_EC2_PUBLIC_IP`
+6. Click **"add domain"**
+
+#### Step 2: Update Nginx Configuration
+
+SSH to your EC2 instance and run:
+
+```bash
+# Edit Nginx configuration
+sudo nano /etc/nginx/sites-available/egg-dashboard
+
+# Find this line:
+#   server_name _;
+# Change it to (replace with your actual subdomain):
+#   server_name egg-dashboard.duckdns.org;
+
+# Save and exit:
+# - Press: Ctrl + X
+# - Press: Y (to confirm save)
+# - Press: Enter (to confirm filename)
+
+# Test configuration
+sudo nginx -t
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+#### Step 3: Access Your Dashboard
+
+Your dashboard is now accessible at:
+```
+http://egg-dashboard.duckdns.org
+```
+
+#### Step 4: Enable HTTPS (Optional but Recommended)
+
+Make your site secure with free SSL certificate:
+
+```bash
+# Install Certbot
+sudo apt-get install -y certbot python3-certbot-nginx
+
+# Get SSL certificate (replace with your domain)
+sudo certbot --nginx -d egg-dashboard.duckdns.org
+
+# Follow the prompts:
+# - Enter your email
+# - Agree to terms
+# - Choose option 2 (redirect HTTP to HTTPS)
+
+# Auto-renewal is enabled automatically
+```
+
+**Now access at:** `https://egg-dashboard.duckdns.org` 🔒
+
+#### Troubleshooting
+
+**Domain not working:**
+- Wait 5-10 minutes for DNS propagation
+- Check your IP is correct on DuckDNS dashboard
+- Run: `ping egg-dashboard.duckdns.org` to verify it points to your EC2 IP
+
+**Nginx error:**
+- Run: `sudo nginx -t` to check for syntax errors
+- Check logs: `sudo tail -f /var/log/nginx/error.log`
+
+**SSL certificate fails:**
+- Ensure port 80 and 443 are open in EC2 security group
+- Wait for DNS to propagate before running certbot
+
+---
+
+## �🎉 Success!
 
 Your Egg Tray Quality Inspection Dashboard is now live!
 
-**Share URL:** `http://YOUR_EC2_IP`
+**Share URL:** `http://YOUR_EC2_IP` or `https://your-domain.duckdns.org`
 
 **Estimated Time:** 30-45 minutes  
 **Monthly Cost:** $0 (free tier) or ~$17 (t2.small)

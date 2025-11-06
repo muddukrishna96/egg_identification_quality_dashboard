@@ -75,7 +75,13 @@ def process_egg_tray(image_bytes: bytes):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
     # Determine tray status
-    tray_status = "OK" if num_empty_slots == 0 else "Not OK"
+    # No Go if: no eggs detected OR empty slots present
+    if num_eggs == 0:
+        tray_status = "No Go"  # No eggs detected at all
+    elif num_empty_slots > 0:
+        tray_status = "No Go"  # Empty slots present
+    else:
+        tray_status = "OK"     # Tray is full with eggs
 
     # Overlay summary text in a more aesthetic way
     status_text = f"Tray: {tray_status}"

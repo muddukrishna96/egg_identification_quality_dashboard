@@ -223,3 +223,6 @@ tmp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Blog outline (personal notes, not for version control)
+BLOG_OUTLINE.md

@@ -83,6 +83,13 @@ def process_egg_tray(image_bytes: bytes):
     else:
         tray_status = "OK"     # Tray is full with eggs
 
+    # Get image dimensions for proportional scaling
+    img_height, img_width = frame.shape[:2]
+    
+    # Calculate font scale based on image size (proportional)
+    font_scale = min(img_width, img_height) / 600  # Scale factor based on image size
+    font_thickness = max(1, int(font_scale * 2))
+    
     # Overlay summary text in a more aesthetic way
     status_text = f"Tray: {tray_status}"
     status_color_bgr = (0, 255, 0) if tray_status == "OK" else (0, 0, 255)  # green/red
@@ -92,17 +99,24 @@ def process_egg_tray(image_bytes: bytes):
     font = cv2.FONT_HERSHEY_COMPLEX
 
     # Calculate text size to draw rectangle neatly around it
-    (text_width, text_height), baseline = cv2.getTextSize(status_text, font, 1, 2)
-    rect_x, rect_y = 30, 30
-    rect_w, rect_h = text_width + 40, text_height + 20
+    (text_width, text_height), baseline = cv2.getTextSize(status_text, font, font_scale, font_thickness)
+    
+    # Position relative to image size
+    rect_x = int(img_width * 0.03)  # 3% from left
+    rect_y = int(img_height * 0.05)  # 5% from top
+    padding_x = int(text_width * 0.2)
+    padding_y = int(text_height * 0.3)
+    
+    rect_w = text_width + padding_x * 2
+    rect_h = text_height + padding_y * 2
 
     # Draw filled rectangle for status background
-    cv2.rectangle(frame, (rect_x, rect_y - text_height - 10),
-                (rect_x + rect_w, rect_y + 10), status_color_bgr, -1)
+    cv2.rectangle(frame, (rect_x, rect_y - text_height - padding_y),
+                (rect_x + rect_w, rect_y + padding_y), status_color_bgr, -1)
 
     # Put white text on top of rectangle
-    cv2.putText(frame, status_text, (rect_x + 15, rect_y),
-                font, 1, text_color, 2, cv2.LINE_AA)
+    cv2.putText(frame, status_text, (rect_x + padding_x, rect_y),
+                font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
 
     # Convert annotated image → base64 for frontend

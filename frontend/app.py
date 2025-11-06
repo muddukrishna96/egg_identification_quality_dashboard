@@ -119,21 +119,33 @@ API_URL = "http://127.0.0.1:8000/predict/"  # FastAPI backend endpoint
 with st.sidebar:
     st.subheader("Upload Egg Tray Image")
     
-    # Option to choose between upload or sample images
+    # Option to choose between upload, sample images, or webcam
     image_source = st.radio(
         "Select Image Source:",
-        ["Upload Your Own", "Use Sample Image"],
+        ["Upload Your Own", "Use Sample Image", "Capture from Webcam"],
         index=0
     )
     
     uploaded_file = None
     sample_image_path = None
+    webcam_image = None
     
     if image_source == "Upload Your Own":
         uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
         
         if uploaded_file:
             st.image(uploaded_file, caption="Uploaded Image Preview", use_container_width=False)
+            st.write("")
+            predict_btn = st.button("🔍 Predict", use_container_width=True)
+        else:
+            predict_btn = False
+    
+    elif image_source == "Capture from Webcam":
+        st.write("📸 Click the button below to capture an image:")
+        st.info("💡 Tip: For best results, ensure good lighting and hold camera steady")
+        webcam_image = st.camera_input("Take a picture")
+        
+        if webcam_image:
             st.write("")
             predict_btn = st.button("🔍 Predict", use_container_width=True)
         else:
@@ -179,11 +191,13 @@ predection_completed= False
 with col1:
 
 
-    if predict_btn and (uploaded_file or sample_image_path):
+    if predict_btn and (uploaded_file or sample_image_path or webcam_image):
         with st.spinner("Processing image... please wait"):
             # Send image to FastAPI backend (no saving)
             if uploaded_file:
                 files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
+            elif webcam_image:
+                files = {"file": ("webcam_capture.jpg", webcam_image, "image/jpeg")}
             else:
                 # For sample images, open and send as file
                 with open(sample_image_path, "rb") as f:
@@ -194,15 +208,15 @@ with col1:
                         st.error(f"❌ API request failed: {e}")
                         st.stop()
             
-            # For uploaded files, send normally
-            if uploaded_file:
+            # For uploaded files or webcam, send normally
+            if uploaded_file or webcam_image:
                 try:
                     response = requests.post(API_URL, files=files, timeout=60)
                 except requests.exceptions.RequestException as e:
                     st.error(f"❌ API request failed: {e}")
                     st.stop()
                     
-    if predict_btn and (uploaded_file or sample_image_path) and response.status_code == 200:
+    if predict_btn and (uploaded_file or sample_image_path or webcam_image) and response.status_code == 200:
         try:
             # Decode base64 image returned from backend
             result = response.json()
@@ -229,7 +243,7 @@ with col1:
 
 # -------- Right Column: Output Visualization --------
 with col2:
-    if predict_btn and (uploaded_file or sample_image_path) and response.status_code == 200:
+    if predict_btn and (uploaded_file or sample_image_path or webcam_image) and response.status_code == 200:
         try:
 
             tray_ok = result["tray_status"].lower() == "ok"

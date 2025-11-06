@@ -3,6 +3,23 @@ name: Deploy to AWS EC2
 on:
   push:
     branches: [ aws_deployment ]
+    paths:
+      # Only trigger on code changes, not documentation
+      - 'backend/**'
+      - 'frontend/**'
+      - 'src/**'
+      - 'requirements.txt'
+      - 'run_app.py'
+      - 'inference_phams.yaml'
+      - 'parms.yaml'
+      - 'deploy.sh'
+      - 'auto_update.sh'
+      # Exclude documentation and configs
+      - '!**.md'
+      - '!BLOG_OUTLINE.md'
+      - '!DEPLOYMENT_GUIDE.md'
+      - '!README.md'
+      - '!.gitignore'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:

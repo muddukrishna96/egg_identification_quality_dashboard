@@ -720,7 +720,47 @@ sudo certbot --nginx -d egg-dashboard.duckdns.org
 
 ---
 
-## �🎉 Success!
+## 🌐 Important: HTTPS Required for Webcam Feature
+
+**If you're using the webcam capture feature, HTTPS is REQUIRED, not optional!**
+
+### Why HTTPS is Needed:
+
+Modern browsers (Chrome, Firefox, Safari, Edge) **block webcam and microphone access** on non-secure (HTTP) websites for security and privacy reasons.
+
+- ❌ **HTTP** (`http://your-ip` or `http://duckdns-domain`): Webcam blocked by browser
+- ✅ **HTTPS** (`https://duckdns-domain`): Webcam works perfectly
+- ✅ **Localhost** (`http://localhost` or `http://127.0.0.1`): Webcam works (development only)
+
+### Solution:
+
+**Follow Step 4 above to enable HTTPS** - it only takes 5 minutes and is completely FREE!
+
+```bash
+sudo apt-get install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-subdomain.duckdns.org
+```
+
+### Key Points:
+
+- ✅ **One-time setup** - You never need to do it again
+- ✅ **Auto-renewal** - SSL certificates renew automatically every 60 days
+- ✅ **No maintenance** - Certbot handles everything automatically
+- ✅ **Future deployments** - HTTPS stays active, no need to reconfigure
+- ✅ **Free forever** - Let's Encrypt certificates are completely free
+
+### After HTTPS Setup:
+
+1. Access your dashboard at: `https://your-subdomain.duckdns.org`
+2. Browser will show 🔒 padlock icon (secure connection)
+3. Webcam permission popup will appear when you select "Capture from Webcam"
+4. Grant permission and start capturing images! 📸
+
+**Note:** Users can still upload images or use sample images without HTTPS. Only the webcam feature requires HTTPS.
+
+---
+
+## 🎉 Success!
 
 Your Egg Tray Quality Inspection Dashboard is now live!
 

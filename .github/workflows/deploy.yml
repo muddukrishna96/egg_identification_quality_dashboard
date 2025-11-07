@@ -43,26 +43,8 @@ jobs:
         echo "$PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
         
-        # Deploy
-        ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} << 'ENDSSH'
-set -e
-cd /home/ubuntu/egg_identification_quality_dashboard
-
-echo "Pulling latest changes..."
-git pull origin aws_deployment
-
-echo "Activating virtual environment..."
-source venv/bin/activate
-
-echo "Updating dependencies..."
-pip install -r requirements.txt --upgrade
-
-echo "Restarting services..."
-sudo systemctl restart egg-backend
-sudo systemctl restart egg-frontend
-
-echo "Deployment complete!"
-ENDSSH
+        # Deploy with single-line SSH command
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} "cd /home/ubuntu/egg_identification_quality_dashboard && git pull origin aws_deployment && source venv/bin/activate && pip install -r requirements.txt --upgrade && sudo systemctl restart egg-backend && sudo systemctl restart egg-frontend && echo 'Deployment complete!'"
         
         # Cleanup
         rm -f private_key.pem

@@ -37,7 +37,7 @@ jobs:
         HOST: ${{ secrets.EC2_HOST }}
         USER: ubuntu
       run: |
-        echo "🚀 Starting deployment to AWS EC2..."
+        echo "Starting deployment to AWS EC2..."
         
         # Setup SSH
         echo "$PRIVATE_KEY" > private_key.pem
@@ -48,31 +48,32 @@ jobs:
           set -e
           cd /home/ubuntu/egg_identification_quality_dashboard
           
-          echo "📥 Pulling latest changes..."
+          echo "Pulling latest changes..."
           git pull origin aws_deployment
           
-          echo "🔧 Activating virtual environment..."
+          echo "Activating virtual environment..."
           source venv/bin/activate
           
-          echo "📚 Updating dependencies..."
+          echo "Updating dependencies..."
           pip install -r requirements.txt --upgrade
           
-          echo "🔄 Restarting services..."
+          echo "Restarting services..."
           sudo systemctl restart egg-backend
           sudo systemctl restart egg-frontend
           
-          echo "✅ Deployment complete!"
+          echo "Deployment complete!"
 ENDSSH
         
         # Cleanup
         rm -f private_key.pem
+        echo "Deployment finished successfully"
         
     - name: Verify Deployment
       env:
         HOST: ${{ secrets.EC2_HOST }}
       run: |
-        echo "🔍 Verifying deployment..."
-        sleep 15  # Wait for services to restart
+        echo "Verifying deployment..."
+        sleep 15
         
         # Check if services are responding (non-failing)
         echo "Checking frontend..."
@@ -81,4 +82,4 @@ ENDSSH
         echo "Checking backend..."
         curl -s -o /dev/null -w "Backend status: %{http_code}\n" http://${HOST}:8000/docs || echo "Backend starting..."
         
-        echo "✅ Deployment verification complete! Services may take 30-60 seconds to fully start."
+        echo "Deployment verification complete! Services may take 30-60 seconds to fully start."

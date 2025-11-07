@@ -45,23 +45,23 @@ jobs:
         
         # Deploy
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} << 'ENDSSH'
-          set -e
-          cd /home/ubuntu/egg_identification_quality_dashboard
-          
-          echo "Pulling latest changes..."
-          git pull origin aws_deployment
-          
-          echo "Activating virtual environment..."
-          source venv/bin/activate
-          
-          echo "Updating dependencies..."
-          pip install -r requirements.txt --upgrade
-          
-          echo "Restarting services..."
-          sudo systemctl restart egg-backend
-          sudo systemctl restart egg-frontend
-          
-          echo "Deployment complete!"
+set -e
+cd /home/ubuntu/egg_identification_quality_dashboard
+
+echo "Pulling latest changes..."
+git pull origin aws_deployment
+
+echo "Activating virtual environment..."
+source venv/bin/activate
+
+echo "Updating dependencies..."
+pip install -r requirements.txt --upgrade
+
+echo "Restarting services..."
+sudo systemctl restart egg-backend
+sudo systemctl restart egg-frontend
+
+echo "Deployment complete!"
 ENDSSH
         
         # Cleanup

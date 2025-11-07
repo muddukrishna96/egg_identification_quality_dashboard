@@ -14,9 +14,9 @@ on:
       - 'parms.yaml'
       - 'deploy.sh'
       - 'auto_update.sh'
+      - '.streamlit/**'
       # Exclude documentation and configs
       - '!**.md'
-      - '!BLOG_OUTLINE.md'
       - '!DEPLOYMENT_GUIDE.md'
       - '!README.md'
       - '!.gitignore'

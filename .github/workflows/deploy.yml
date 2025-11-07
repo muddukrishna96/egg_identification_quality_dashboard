@@ -61,8 +61,9 @@ jobs:
           
           echo "✅ Deployment complete!"
           
-          # Log the deployment
-          echo "$(date): GitHub Actions deployment completed" >> /var/log/egg-dashboard-updates.log
+          # Log the deployment (create log file if it doesn't exist)
+          sudo touch /var/log/egg-dashboard-updates.log 2>/dev/null || true
+          echo "$(date): GitHub Actions deployment completed" | sudo tee -a /var/log/egg-dashboard-updates.log > /dev/null || true
         '
         
         # Cleanup
@@ -73,10 +74,13 @@ jobs:
         HOST: ${{ secrets.EC2_HOST }}
       run: |
         echo "🔍 Verifying deployment..."
-        sleep 10  # Wait for services to restart
+        sleep 15  # Wait for services to restart
         
-        # Check if services are responding
-        curl -f http://${HOST}:8501 || echo "⚠️ Frontend may still be starting..."
-        curl -f http://${HOST}:8000/docs || echo "⚠️ Backend may still be starting..."
+        # Check if services are responding (non-failing)
+        echo "Checking frontend..."
+        curl -s -o /dev/null -w "Frontend status: %{http_code}\n" http://${HOST}:8501 || echo "Frontend starting..."
         
-        echo "✅ Deployment verification complete!"
+        echo "Checking backend..."
+        curl -s -o /dev/null -w "Backend status: %{http_code}\n" http://${HOST}:8000/docs || echo "Backend starting..."
+        
+        echo "✅ Deployment verification complete! Services may take 30-60 seconds to fully start."

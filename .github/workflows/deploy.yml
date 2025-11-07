@@ -44,8 +44,9 @@ jobs:
         chmod 600 private_key.pem
         
         # Deploy
-        ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} '
-          cd /home/ubuntu/egg_identification_quality_dashboard || exit 1
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER}@${HOST} << 'ENDSSH'
+          set -e
+          cd /home/ubuntu/egg_identification_quality_dashboard
           
           echo "📥 Pulling latest changes..."
           git pull origin aws_deployment
@@ -61,11 +62,7 @@ jobs:
           sudo systemctl restart egg-frontend
           
           echo "✅ Deployment complete!"
-          
-          # Log the deployment (create log file if it doesn't exist)
-          sudo touch /var/log/egg-dashboard-updates.log 2>/dev/null || true
-          echo "$(date): GitHub Actions deployment completed" | sudo tee -a /var/log/egg-dashboard-updates.log > /dev/null || true
-        '
+ENDSSH
         
         # Cleanup
         rm -f private_key.pem
